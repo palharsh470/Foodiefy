@@ -16,8 +16,8 @@ export default function Home() {
     { name: "Sandwich", image: require("../../assets/images/sandwich.png") },
   ]
 
-
   const [cartitems, setcartitems] = useState([])
+ 
   useFocusEffect(
     React.useCallback(() => {
       AsyncStorage.getItem("cart").then(function (response) {
@@ -40,7 +40,7 @@ export default function Home() {
           setuser(JSON.parse(response))
         }
         else {
-          router.replace("/")
+          router.replace("/login")
         }
       })
   }, [])
@@ -55,7 +55,7 @@ export default function Home() {
   }
 
   function handleLogout() {
-    console.log("logout")
+    
     AsyncStorage.removeItem("user")
       .then(function () {
         router.replace("/login")

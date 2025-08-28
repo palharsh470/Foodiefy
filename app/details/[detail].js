@@ -63,7 +63,7 @@ export default function Details() {
 
         }
     }
-    console.log(itemdetail[0]?.name)
+   
     return (
         <View style={{
             height: "100%"

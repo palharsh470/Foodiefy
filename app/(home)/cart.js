@@ -107,9 +107,10 @@ export default function Cart() {
                 <Text style={{
                     fontSize: 20,
                     fontWeight: "bold",
-                    
+                    opacity:0.5
                 }}>“Oops! Your cart is feeling lonely 😔'</Text>
                 <Text style={{
+                    opacity:0.5,
                     fontSize: 20,
                     fontWeight: "bold"
                 }}>Let’s fill it with some tasty treats 😋!”</Text>

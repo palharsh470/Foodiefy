@@ -51,7 +51,7 @@ export default function Login() {
         })
 
 
-        console.log("main")
+        
         if (userget) {
             AsyncStorage.setItem("user", JSON.stringify(userget.username)).
                 then(function () {
