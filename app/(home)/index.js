@@ -1,4 +1,4 @@
-import { Image, TextInput, View, ScrollView, Text, TouchableOpacity, FlatList } from "react-native";
+import { Image, TextInput, View, ScrollView, Text, TouchableOpacity, FlatList, Modal, StyleSheet } from "react-native";
 import Food from "../../components/listed_item";
 import { Dimensions } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -6,6 +6,9 @@ import menuItems from "../../components/foodcollection";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { MapPin, SignOut, UserCircle } from "phosphor-react-native";
+import { ImageBackground } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import { getCurrentPositionAsync, requestForegroundPermissionsAsync } from 'expo-location';
 const { width } = Dimensions.get("window");
 
 export default function Home() {
@@ -15,9 +18,11 @@ export default function Home() {
     { name: "Pizza", image: require("../../assets/images/pizza-slice.png") },
     { name: "Sandwich", image: require("../../assets/images/sandwich.png") },
   ]
-
+  const [markerlocation, setmarkerlocation] = useState(null)
   const [cartitems, setcartitems] = useState([])
- 
+  const [showmap, setshowmap] = useState(false)
+  const [user, setuser] = useState("")
+
   useFocusEffect(
     React.useCallback(() => {
       AsyncStorage.getItem("cart").then(function (response) {
@@ -31,7 +36,36 @@ export default function Home() {
     }, [])
   );
 
-  const [user, setuser] = useState("")
+  function handledevicelocation() {
+    requestForegroundPermissionsAsync().then(function (permission) {
+      if (permission?.status == "granted") {
+        getCurrentPositionAsync().then(function (response) {
+          const location = {
+            latitude: response?.coords?.latitude,
+            longitude: response?.coords?.longitude
+          }
+          setmarkerlocation(location)
+
+        })
+      }
+      else {
+        Alert.alert("Perimssion not granted allow the permissin from settings")
+      }
+    })
+  }
+
+
+  function getmaplocation(maplocation) {
+    const location = {
+      longitude: maplocation?.nativeEvent?.coordinate?.longitude,
+      latitude: maplocation?.nativeEvent?.coordinate?.latitude
+    }
+    setmarkerlocation(location)
+  }
+  function confirmlocation() {
+    setshowmap(false)
+
+  }
   useEffect(function () {
 
     AsyncStorage.getItem("user")
@@ -55,7 +89,7 @@ export default function Home() {
   }
 
   function handleLogout() {
-    
+
     AsyncStorage.removeItem("user")
       .then(function () {
         router.replace("/login")
@@ -65,39 +99,42 @@ export default function Home() {
   return (
 
     <View style={{
-      padding: 20
-    }}>
-      
-      <View style={{
-        flexDirection:"row",
-        justifyContent:"space-between",
-        alignItems:"center"
-      }}>
-       <TouchableOpacity onPress={handleLogout}>
-  <SignOut size={32} />
-</TouchableOpacity>
+      paddingHorizontal: 20,
+      marginBottom: 50
 
-        <TouchableOpacity style={{flexDirection:"row",alignItems:"center"}} ><MapPin size={32} color="#D61355" weight="fill"/><Text>Your Location</Text></TouchableOpacity>
+    }}>
+
+      <ImageBackground source={require("../../assets/images/Pattern (2).png")} style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingTop: 50
+      }}>
+        <TouchableOpacity onPress={handleLogout}>
+          <SignOut size={32} />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => { handledevicelocation, setshowmap(true) }} style={{ flexDirection: "row", alignItems: "center" }} ><MapPin size={32} color="#D61355" weight="fill" /><Text>Your Location</Text></TouchableOpacity>
         <TouchableOpacity style={{
           margin: 10
         }} ><UserCircle size={40} color="#D61355" weight="fill" />
         </TouchableOpacity>
 
 
-      </View>
+      </ImageBackground>
 
       <View>
 
         <TextInput style={{
           backgroundColor: "#ffe8e8",
-          margin: 16,
+          margin: 10,
           padding: 15
-        }} placeholder="Search" >
-
-        </TextInput>
+          }} placeholder="Search" >
+          
+          </TextInput>
 
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{
-          marginVertical: 20,
+          marginVertical: 15,
 
         }}>
           {
@@ -118,6 +155,7 @@ export default function Home() {
           }
         </ScrollView>
 
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{
           gap: 10,
 
@@ -133,10 +171,10 @@ export default function Home() {
                 borderColor: "#D61355",
                 gap: 10,
                 alignItems: "center",
-                marginVertical: 20,
+                marginVertical: 10,
                 paddingHorizontal: 10,
                 paddingRight: 20,
-                paddingVertical: 7,
+                paddingVertical: 4,
                 borderRadius: 7
 
 
@@ -176,8 +214,40 @@ export default function Home() {
         }}>
 
       </FlatList>
+
+      <Modal visible={showmap} transparent={true} >
+        <View style={style.map}>
+          <MapView onPress={getmaplocation} style={{
+            height: 400,
+            
+          }} >
+            {markerlocation && <Marker coordinate={{
+              longitude: markerlocation?.longitude,
+              latitude: markerlocation?.latitude
+            }} />
+            }
+          </MapView>
+          <TouchableOpacity style={{
+            backgroundColor: "white",
+            height: 30,
+            borderWidth: 2,
+            justifyContent: "center"
+          }} onPress={confirmlocation}><Text>Confirm Location</Text></TouchableOpacity>
+        </View>
+      </Modal>
+
     </View>
 
 
   )
 }
+
+const style = StyleSheet.create({
+  map: {
+    width: "90%",
+    position: "absolute",
+    marginHorizontal: 22,
+    marginVertical: 200,
+    // boxShadow : " 0 , 0 , 10px , 10px , white "
+  }
+})

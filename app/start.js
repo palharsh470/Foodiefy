@@ -31,7 +31,7 @@ export default function HomePage() {
                     }}>Foodiefy</Text>
 
                 </View>
-
+          
         </ImageBackground>
     )
 }
